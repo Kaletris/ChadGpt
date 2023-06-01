@@ -24,9 +24,18 @@ public class ThreadsController : ControllerBase
     }
 
     [HttpGet]
-    public List<Thread> GetThreads()
+    public List<ThreadDto> GetThreads()
     {
-        return context.Threads.ToList();
+        return context.Threads.Select(thread => new ThreadDto
+        {
+            Id = thread.Id,
+            Name = thread.Name,
+            Owner = new UserDto
+            {
+                Id = thread.Owner!.Id,
+                Name = thread.Owner!.UserName!
+            }
+        }).ToList();
     }
 
     [HttpPost]

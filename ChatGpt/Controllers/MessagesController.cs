@@ -18,7 +18,7 @@ public class MessagesController : ControllerBase
         this.context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    [HttpPut("")]
+    [HttpPut]
     public ActionResult EditMessage(int messageId, [FromBody] string text)
     {
         var message = context.Messages.Find(messageId);
@@ -31,7 +31,7 @@ public class MessagesController : ControllerBase
     }
 
 
-    [HttpDelete("")]
+    [HttpDelete]
     public ActionResult DeleteMessage(int messageId)
     {
         var message = context.Messages.Find(messageId);
@@ -54,14 +54,16 @@ public class MessagesController : ControllerBase
         {
             message.Reactions.Add(new Reaction
             {
-                UserId = User.Identity!.Name!
+                UserId = User.Identity!.Name!,
+                Type = type
             });
             context.SaveChanges();
             return Ok();
         }
 
-        context.SaveChanges();
         reaction.Type = type;
+
+        context.SaveChanges();
         return Ok();
     }
 

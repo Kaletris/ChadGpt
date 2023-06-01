@@ -18,7 +18,7 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<MessagingContext>();
 
-builder.Services.AddIdentityServer()
+builder.Services.AddIdentityServer(options => { options.IssuerUri = "https://chatgpt.local"; })
     .AddInMemoryClients(new[]
     {
         new Client
@@ -28,9 +28,10 @@ builder.Services.AddIdentityServer()
             RedirectUris = { "https://localhost:5002/signin-oidc" },
             PostLogoutRedirectUris = { "https://localhost:5002/signout-callback-oidc" },
             FrontChannelLogoutUri = "https://localhost:5002/signout-oidc",
-            AllowedScopes = { "openid", "profile", "email", "phone", "offline_access" },
+            AllowedScopes = { "openid", "profile", "email", "phone" },
             RequireClientSecret = false,
-            RequirePkce = false
+            RequirePkce = false,
+            AllowOfflineAccess = true
         }
     })
     .AddInMemoryIdentityResources(new IdentityResource[]
@@ -49,7 +50,8 @@ builder.Services.AddAuthentication()
         builder.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = false,
-            NameClaimType = ClaimTypes.NameIdentifier
+            NameClaimType = ClaimTypes.NameIdentifier,
+            ValidIssuer = "https://chatgpt.local"
         };
     });
 
