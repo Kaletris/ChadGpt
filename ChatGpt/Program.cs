@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ChatGpt.Areas.Identity;
 using ChatGpt.Data;
+using ChatGpt.Hubs;
 using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<MessagingContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<MessagingContext>();
+builder.Services.AddSignalR();
 
 builder.Services.AddIdentityServer(options => { options.IssuerUri = "https://chatgpt.local"; })
     .AddInMemoryClients(new[]
@@ -87,5 +89,6 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
+app.MapHub<NotificationHub>("/notifications");
 
 app.Run();

@@ -1,9 +1,11 @@
 ﻿using ChatGpt.Data;
 using ChatGpt.Dtos;
+using ChatGpt.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Thread = ChatGpt.Data.Thread;
 
 namespace ChatGpt.Controllers;
@@ -14,13 +16,16 @@ namespace ChatGpt.Controllers;
 public class ThreadsController : ControllerBase
 {
     private readonly MessagingContext context;
+    private readonly IHubContext<NotificationHub> hubContext;
 
     private readonly UserManager<IdentityUser> userManager;
 
-    public ThreadsController(MessagingContext context, UserManager<IdentityUser> userManager)
+    public ThreadsController(MessagingContext context, UserManager<IdentityUser> userManager,
+        IHubContext<NotificationHub> hubContext)
     {
         this.context = context;
         this.userManager = userManager;
+        this.hubContext = hubContext;
     }
 
     [HttpGet]
@@ -39,7 +44,7 @@ public class ThreadsController : ControllerBase
     }
 
     [HttpPost]
-    public void CreateThread(string name)
+    public async Task CreateThread([FromBody] string name)
     {
         var thread = new Thread
         {
@@ -48,7 +53,9 @@ public class ThreadsController : ControllerBase
         };
 
         context.Add(thread);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
+
+        await hubContext.Clients.All.SendAsync("ThreadCreated");
     }
 
     [HttpGet("{threadId:int}/messages")]
@@ -83,6 +90,8 @@ public class ThreadsController : ControllerBase
 
         context.Add(message);
         await context.SaveChangesAsync();
+
+        await hubContext.Clients.All.SendAsync("MessageCreated", threadId);
 
         return Ok();
     }
