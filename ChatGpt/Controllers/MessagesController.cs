@@ -1,7 +1,9 @@
-﻿using ChatGpt.Data;
+﻿using System.Security.Claims;
+using ChatGpt.Data;
 using ChatGpt.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +27,7 @@ public class MessagesController : ControllerBase
     [HttpPut]
     public async Task<ActionResult> EditMessage(int messageId, [FromBody] string text)
     {
-        var message = context.Messages.Find(messageId);
+        var message = await context.Messages.FindAsync(messageId);
         if (message == null) return NotFound();
         if (User.Identity!.Name != message.UserId) return Forbid();
         message.Text = text;
@@ -41,9 +43,14 @@ public class MessagesController : ControllerBase
     [HttpDelete]
     public async Task<ActionResult> DeleteMessage(int messageId)
     {
-        var message = context.Messages.Find(messageId);
+        var message = await context.Messages.FindAsync(messageId);
+        
         if (message == null) return NotFound();
-        if (User.Identity!.Name != message.UserId) return Forbid();
+        
+        var isAdmin = User.Claims.Any(claim => claim is { Type: ClaimTypes.Role, Value: "admin" });
+        var isSender = User.Identity!.Name == message.UserId;
+        
+        if (!isSender && !isAdmin) return Forbid();
 
         context.Messages.Remove(message);
         await context.SaveChangesAsync();

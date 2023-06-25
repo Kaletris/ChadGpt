@@ -29,10 +29,14 @@ Olyan alkalmazás amelyen threadekre lehet üzeneteket küldeni és reagálni r�
 - Szerver oldali autentikáció. Saját token provider készítése, használata esetén nem jár pont.<br>
   Token alapú, ASP.NET Core Identity + Duende Server/IdentityServer5<br>
   egyéb kliens esetén [12]
+- szerver oldali hozzáférés-szabályozás, az előbbi authentikációra építve [2-5]
+  szerepkör alapú hozzáférés-szabályozás 2
+  policy alapú hozzáférés-szabályozás (pl.: Claim alapon) 5
 
 - Publikálás docker konténerbe és futtatás konténerből [7]
 
 - SignalR Core alkalmazása valós idejű, szerver felől érkező push jellegű kommunikációra [7]
+
 - teljes szerveroldal hosztolása külső szolgáltatónál [5-7]
   Azure (ingyenes App Services - WebApp szolgáltatás) 7
 

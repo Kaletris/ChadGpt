@@ -3,6 +3,7 @@ using ChatGpt.Areas.Identity;
 using ChatGpt.Data;
 using ChatGpt.Hubs;
 using Duende.IdentityServer.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ builder.Services.AddDbContext<MessagingContext>(options =>
     options.UseSqlite(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<MessagingContext>();
 builder.Services.AddSignalR();
 
@@ -57,10 +59,22 @@ builder.Services.AddAuthentication()
         };
     });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        "Admin", 
+        policy => policy
+            .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+            .RequireClaim(ClaimTypes.Role, "admin")
+            .Build());
+});
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services
     .AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
@@ -86,9 +100,30 @@ app.UseIdentityServer();
 
 app.UseAuthorization();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapHub<NotificationHub>("/notifications");
+
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var admin = await userManager.FindByNameAsync("admin");
+    if (admin == null)
+    {
+        admin = new IdentityUser("admin");
+        admin.Email = "admin@asd.asd";
+        await userManager.CreateAsync(admin, "Admin123.");
+        await roleManager.CreateAsync(new IdentityRole("admin"));
+        await userManager.AddToRoleAsync(admin, "admin");
+    }
+}
 
 app.Run();

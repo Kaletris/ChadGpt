@@ -58,6 +58,15 @@ public class ThreadsController : ControllerBase
         await hubContext.Clients.All.SendAsync("ThreadCreated");
     }
 
+    [HttpDelete("{threadId:int}")]
+    [Authorize("Admin")]
+    public async Task DeleteThread(int threadId)
+    {
+        var thread = await context.Threads.FindAsync(threadId);
+        
+        
+    }
+
     [HttpGet("{threadId:int}/messages")]
     public List<MessageDto> GetMessages(int threadId)
     {
