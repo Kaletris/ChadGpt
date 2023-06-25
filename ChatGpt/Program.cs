@@ -3,6 +3,7 @@ using System.Security.Claims;
 using ChatGpt.Areas.Identity;
 using ChatGpt.Data;
 using ChatGpt.Hubs;
+using ChatGpt.Services;
 using ChatGpt.Swagger;
 using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -81,6 +82,8 @@ builder.Services.AddServerSideBlazor();
 builder.Services
     .AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 
+builder.Services.AddGrpc();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "ChadGpt", Version = "v1" });
@@ -137,6 +140,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.MapGrpcService<ThreadsService>();
 app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");

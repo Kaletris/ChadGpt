@@ -1,0 +1,24 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "Grpc";
+
+// The Threads service definition.
+service ThreadsService {
+  // Sends a greeting
+  rpc ListThreads (ListThreadsRequest) returns (ListThreadsResponse);
+}
+
+// The request message containing the user's name.
+message ListThreadsRequest{
+  
+};
+
+// The response message containing the greetings.
+message ListThreadsResponse {
+  repeated Thread threads = 1;
+}
+
+message Thread {
+  int32 id = 1;
+  string name = 2;
+}
