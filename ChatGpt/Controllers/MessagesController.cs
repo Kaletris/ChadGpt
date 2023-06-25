@@ -24,6 +24,12 @@ public class MessagesController : ControllerBase
         this.hubContext = hubContext;
     }
 
+    /// <summary>
+    /// Edits a specific Message.
+    /// </summary>
+    /// <response code="404">There is no such Message</response>
+    /// <response code="403">User has no right to Edit this Message</response>
+    /// <response code="200">Message Edited</response>
     [HttpPut]
     public async Task<ActionResult> EditMessage(int messageId, [FromBody] string text)
     {
@@ -39,7 +45,12 @@ public class MessagesController : ControllerBase
         return Ok();
     }
 
-
+    /// <summary>
+    /// Deletes a specific Message.
+    /// </summary>
+    /// <response code="404">There is no such Message</response>
+    /// <response code="403">User has no right to delete this Message</response>
+    /// <response code="200">Message Deleted</response>
     [HttpDelete]
     public async Task<ActionResult> DeleteMessage(int messageId)
     {
@@ -59,6 +70,11 @@ public class MessagesController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Adds/changes the User's Reaction on a specific Message.
+    /// </summary>
+    /// <response code="404">There is no such Message</response>
+    /// <response code="200">Message Edited</response>
     [HttpPut("react")]
     public async Task<ActionResult> React(int messageId, [FromBody] ReactionType type)
     {
@@ -88,6 +104,12 @@ public class MessagesController : ControllerBase
         return Ok();
     }
 
+    /// <summary>
+    /// Removes the User's Reaction on a specific Message.
+    /// </summary>
+    /// <response code="404">There is no such Message</response>
+    /// <response code="400">User had no Reaction on this Message</response>
+    /// <response code="200">Reaction removed</response>
     [HttpDelete("react")]
     public async Task<ActionResult> DeleteReaction(int messageId)
     {

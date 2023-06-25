@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Security.Claims;
 using ChatGpt.Areas.Identity;
 using ChatGpt.Data;
@@ -95,6 +96,9 @@ builder.Services.AddSwaggerGen(options =>
             }
         }
     });
+    
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
     
     options.OperationFilter<AuthorizeCheckOperationFilter>();
 });

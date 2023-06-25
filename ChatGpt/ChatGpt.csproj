@@ -7,6 +7,8 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-ChatGpt-49BBF979-2D28-4B75-AA59-271CA4D8D182</UserSecretsId>
         <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -32,6 +34,7 @@
     <ItemGroup>
       <_ContentIncludedByDefault Remove="keys\is-signing-key-896258038003DA8FE123141EE6A91EDE.json" />
       <_ContentIncludedByDefault Remove="keys\is-signing-key-9F516E9AD2C1780395395E798D29A63C.json" />
+      <_ContentIncludedByDefault Remove="keys\is-signing-key-8DD39CA08A6FC7335DF5CDBD9867DF66.json" />
     </ItemGroup>
 
 </Project>

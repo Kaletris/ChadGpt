@@ -23,5 +23,7 @@ public class MessagingContext : IdentityDbContext
         base.OnModelCreating(builder);
 
         builder.Entity<Reaction>().HasKey(reaction => new { reaction.UserId, reaction.MessageId });
+
+        builder.Entity<Message>().HasIndex(message => message.Time);
     }
 }
