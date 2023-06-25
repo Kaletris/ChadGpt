@@ -32,7 +32,8 @@ builder.Services.AddIdentityServer(options => { options.IssuerUri = "https://cha
         {
             ClientId = "client",
             AllowedGrantTypes = GrantTypes.Code,
-            RedirectUris = { "https://localhost:5002/signin-oidc", "https://localhost:7069/swagger/oauth2-redirect.html" },
+            RedirectUris =
+                { "https://localhost:5002/signin-oidc", "https://localhost:7069/swagger/oauth2-redirect.html" },
             PostLogoutRedirectUris = { "https://localhost:5002/signout-callback-oidc" },
             FrontChannelLogoutUri = "https://localhost:5002/signout-oidc",
             AllowedScopes = { "openid", "profile", "email", "phone" },
@@ -65,12 +66,15 @@ builder.Services.AddAuthentication()
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(
-        "Admin", 
+        "Admin",
         policy => policy
             .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
             .RequireClaim(ClaimTypes.Role, "admin")
             .Build());
 });
+
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<MessagingContext>();
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
@@ -91,15 +95,15 @@ builder.Services.AddSwaggerGen(options =>
                 TokenUrl = new Uri("https://localhost:7069/connect/token"),
                 Scopes = new Dictionary<string, string>
                 {
-                    {"openid", "OpenId"}
+                    { "openid", "OpenId" }
                 }
             }
         }
     });
-    
+
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-    
+
     options.OperationFilter<AuthorizeCheckOperationFilter>();
 });
 
@@ -137,6 +141,7 @@ app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 app.MapHub<NotificationHub>("/notifications");
+app.MapHealthChecks("/healthz");
 
 using (var scope = app.Services.CreateScope())
 {
