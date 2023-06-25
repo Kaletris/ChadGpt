@@ -29,4 +29,9 @@
         </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="keys\is-signing-key-896258038003DA8FE123141EE6A91EDE.json" />
+      <_ContentIncludedByDefault Remove="keys\is-signing-key-9F516E9AD2C1780395395E798D29A63C.json" />
+    </ItemGroup>
+
 </Project>

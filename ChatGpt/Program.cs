@@ -2,12 +2,14 @@ using System.Security.Claims;
 using ChatGpt.Areas.Identity;
 using ChatGpt.Data;
 using ChatGpt.Hubs;
+using ChatGpt.Swagger;
 using Duende.IdentityServer.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,7 +31,7 @@ builder.Services.AddIdentityServer(options => { options.IssuerUri = "https://cha
         {
             ClientId = "client",
             AllowedGrantTypes = GrantTypes.Code,
-            RedirectUris = { "https://localhost:5002/signin-oidc" },
+            RedirectUris = { "https://localhost:5002/signin-oidc", "https://localhost:7069/swagger/oauth2-redirect.html" },
             PostLogoutRedirectUris = { "https://localhost:5002/signout-callback-oidc" },
             FrontChannelLogoutUri = "https://localhost:5002/signout-oidc",
             AllowedScopes = { "openid", "profile", "email", "phone" },
@@ -74,7 +76,28 @@ builder.Services.AddServerSideBlazor();
 builder.Services
     .AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "ChadGpt", Version = "v1" });
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri("https://localhost:7069/connect/authorize"),
+                TokenUrl = new Uri("https://localhost:7069/connect/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    {"openid", "OpenId"}
+                }
+            }
+        }
+    });
+    
+    options.OperationFilter<AuthorizeCheckOperationFilter>();
+});
 
 var app = builder.Build();
 
@@ -118,8 +141,12 @@ using (var scope = app.Services.CreateScope())
     var admin = await userManager.FindByNameAsync("admin");
     if (admin == null)
     {
-        admin = new IdentityUser("admin");
-        admin.Email = "admin@asd.asd";
+        admin = new IdentityUser
+        {
+            // Username must match email, because the builtin login page uses the email as username
+            UserName = "admin@asd.asd",
+            Email = "admin@asd.asd"
+        };
         await userManager.CreateAsync(admin, "Admin123.");
         await roleManager.CreateAsync(new IdentityRole("admin"));
         await userManager.AddToRoleAsync(admin, "admin");
