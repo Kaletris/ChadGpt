@@ -149,6 +149,9 @@ app.MapHealthChecks("/healthz");
 
 using (var scope = app.Services.CreateScope())
 {
+    var context = scope.ServiceProvider.GetRequiredService<MessagingContext>();
+    context.Database.Migrate();
+
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var admin = await userManager.FindByNameAsync("admin");
