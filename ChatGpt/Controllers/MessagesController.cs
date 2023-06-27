@@ -3,7 +3,6 @@ using ChatGpt.Data;
 using ChatGpt.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +24,7 @@ public class MessagesController : ControllerBase
     }
 
     /// <summary>
-    /// Edits a specific Message.
+    ///     Edits a specific Message.
     /// </summary>
     /// <response code="404">There is no such Message</response>
     /// <response code="403">User has no right to Edit this Message</response>
@@ -41,12 +40,12 @@ public class MessagesController : ControllerBase
         context.Messages.Remove(message);
         await context.SaveChangesAsync();
 
-        await hubContext.Clients.All.SendAsync("MessageCreated", message.ThreadId);
+        await hubContext.Clients.All.SendAsync("MessageEdited", message.ThreadId);
         return Ok();
     }
 
     /// <summary>
-    /// Deletes a specific Message.
+    ///     Deletes a specific Message.
     /// </summary>
     /// <response code="404">There is no such Message</response>
     /// <response code="403">User has no right to delete this Message</response>
@@ -55,23 +54,23 @@ public class MessagesController : ControllerBase
     public async Task<ActionResult> DeleteMessage(int messageId)
     {
         var message = await context.Messages.FindAsync(messageId);
-        
+
         if (message == null) return NotFound();
-        
+
         var isAdmin = User.Claims.Any(claim => claim is { Type: ClaimTypes.Role, Value: "admin" });
         var isSender = User.Identity!.Name == message.UserId;
-        
+
         if (!isSender && !isAdmin) return Forbid();
 
         context.Messages.Remove(message);
         await context.SaveChangesAsync();
 
-        await hubContext.Clients.All.SendAsync("ThreadDeleted", message.ThreadId);
+        await hubContext.Clients.All.SendAsync("MessageDeleted", message.ThreadId);
         return Ok();
     }
 
     /// <summary>
-    /// Adds/changes the User's Reaction on a specific Message.
+    ///     Adds/changes the User's Reaction on a specific Message.
     /// </summary>
     /// <response code="404">There is no such Message</response>
     /// <response code="200">Message Edited</response>
@@ -105,7 +104,7 @@ public class MessagesController : ControllerBase
     }
 
     /// <summary>
-    /// Removes the User's Reaction on a specific Message.
+    ///     Removes the User's Reaction on a specific Message.
     /// </summary>
     /// <response code="404">There is no such Message</response>
     /// <response code="400">User had no Reaction on this Message</response>

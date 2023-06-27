@@ -3,9 +3,11 @@ using System.Security.Claims;
 using ChatGpt.Areas.Identity;
 using ChatGpt.Data;
 using ChatGpt.Hubs;
+using ChatGpt.ProfileService;
 using ChatGpt.Services;
 using ChatGpt.Swagger;
 using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -74,6 +76,8 @@ builder.Services.AddAuthorization(options =>
             .Build());
 });
 
+builder.Services.AddTransient<IProfileService, ProfileService>();
+
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<MessagingContext>();
 
@@ -109,6 +113,7 @@ builder.Services.AddSwaggerGen(options =>
 
     options.OperationFilter<AuthorizeCheckOperationFilter>();
 });
+
 
 var app = builder.Build();
 

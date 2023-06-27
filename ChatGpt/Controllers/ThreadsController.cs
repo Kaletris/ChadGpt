@@ -1,4 +1,5 @@
-﻿using ChatGpt.Data;
+﻿using System.Security.Claims;
+using ChatGpt.Data;
 using ChatGpt.Dtos;
 using ChatGpt.Hubs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -28,6 +29,10 @@ public class ThreadsController : ControllerBase
         this.hubContext = hubContext;
     }
 
+    /// <summary>
+    ///     Returns the List of Threads.
+    /// </summary>
+    /// <response code="200">Thread Created</response>
     [HttpGet]
     public List<ThreadDto> GetThreads()
     {
@@ -43,8 +48,12 @@ public class ThreadsController : ControllerBase
         }).ToList();
     }
 
+    /// <summary>
+    ///     Creates a new Thread.
+    /// </summary>
+    /// <response code="200">Thread Created</response>
     [HttpPost]
-    public async Task CreateThread([FromBody] string name)
+    public async Task<ActionResult> CreateThread([FromBody] string name)
     {
         var thread = new Thread
         {
@@ -56,17 +65,42 @@ public class ThreadsController : ControllerBase
         await context.SaveChangesAsync();
 
         await hubContext.Clients.All.SendAsync("ThreadCreated");
+
+        return Ok();
     }
 
+    /// <summary>
+    ///     Deletes a specific Thread.
+    /// </summary>
+    /// <response code="404">There is no such Thread</response>
+    /// <response code="403">User has no right to Delete this Thread</response>
+    /// <response code="200">Thread Deleted</response>
     [HttpDelete("{threadId:int}")]
     [Authorize("Admin")]
-    public async Task DeleteThread(int threadId)
+    public async Task<ActionResult> DeleteThread(int threadId)
     {
         var thread = await context.Threads.FindAsync(threadId);
-        
-        
+
+        if (thread == null) return NotFound();
+
+        var isAdmin = User.Claims.Any(claim => claim is { Type: ClaimTypes.Role, Value: "admin" });
+        var isSender = User.Identity!.Name == thread.OwnerId;
+
+        if (!isSender && !isAdmin) return Forbid();
+
+        context.Threads.Remove(thread);
+        await context.SaveChangesAsync();
+
+        await hubContext.Clients.All.SendAsync("ThreadDeleted");
+
+        return Ok();
     }
 
+    /// <summary>
+    ///     Returns the messages of a specific Thread.
+    /// </summary>
+    /// <response code="404">There is no such Thread</response>
+    /// <response code="200">Returns the List of Messages</response>
     [HttpGet("{threadId:int}/messages")]
     public List<MessageDto> GetMessages(int threadId)
     {
@@ -83,9 +117,19 @@ public class ThreadsController : ControllerBase
         }).ToList();
     }
 
+    /// <summary>
+    ///     Posts a Message to a specific Thread.
+    /// </summary>
+    /// <response code="404">There is no such Thread</response>
+    /// <response code="400">There is no such User</response>
+    /// <response code="200">Message Posted</response>
     [HttpPost("{threadId:int}/messages")]
     public async Task<ActionResult> CreateMessage(int threadId, [FromBody] string text)
     {
+        var thread = await context.Threads.FindAsync(threadId);
+
+        if (thread == null) return NotFound();
+
         var user = await userManager.FindByIdAsync(User.Identity!.Name!);
         if (user == null) return BadRequest("No such user");
 
